@@ -57,6 +57,7 @@ public class MyLocationService extends Service {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 100, 0, listener);
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, listener);
             Log.e("LOCATIONSERVICE", "permission fine2");
+            Helper.setAppState(7, this.getApplicationContext());
         }
     }
 
@@ -154,6 +155,7 @@ public class MyLocationService extends Service {
 
             public void onLocationChanged(final Location loc)
             {
+                Helper.setAppState(8, getApplicationContext());
                 Toast.makeText(getApplicationContext(), "Gps Update", Toast.LENGTH_SHORT).show();
                 Log.i("****************", "Location changed");
                 if(isBetterLocation(loc, previousBestLocation)) {

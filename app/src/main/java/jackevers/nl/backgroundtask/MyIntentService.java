@@ -24,7 +24,7 @@ public class MyIntentService extends IntentService implements SensorEventListene
 
     protected void onHandleIntent(Intent intent) {
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 10; i++) {
 
 
             Helper.setAppState(0, getApplicationContext());

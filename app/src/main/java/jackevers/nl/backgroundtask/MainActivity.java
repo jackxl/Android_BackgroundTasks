@@ -10,12 +10,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        Intent i = new Intent(this, MyIntentService.class);
-//        startService(i);
+        Intent i = new Intent(this, MyIntentService.class);
+        startService(i);
 
 
-        Intent it = new Intent(this, LocationServiceActivity.class);
-        startActivity(it);
+//        Intent it = new Intent(this, LocationServiceActivity.class);
+//        startActivity(it);
 
     }
 }
