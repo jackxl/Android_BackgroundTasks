@@ -3,136 +3,186 @@ package jackevers.nl.backgroundtask;
 /**
  * Created by jack on 14-1-2016.
  */
+
+import android.Manifest;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
-public class MyLocationService extends Service
-{
-    /*
-    Class from stackoverflow.
-     */
-    private static final String TAG = "BOOMBOOMTESTGPS";
-    private LocationManager mLocationManager = null;
-    private static final int LOCATION_INTERVAL = 1000;
-    private static final float LOCATION_DISTANCE = 0; // 10f;
+public class MyLocationService extends Service {
+    public static final String BROADCAST_ACTION = "Hello World";
+    private static final int TWO_MINUTES = 1000 * 60 * 2;
+    public LocationManager locationManager;
+    public MyLocationListener listener;
+    public Location previousBestLocation = null;
 
-    private class LocationListener implements android.location.LocationListener
-    {
-        Location mLastLocation;
-
-        public LocationListener(String provider)
-        {
-            Log.e(TAG, "LocationListener " + provider);
-            mLastLocation = new Location(provider);
-        }
-
-        @Override
-        public void onLocationChanged(Location location)
-        {
-            Log.e(TAG, "onLocationChanged: " + location);
-            mLastLocation.set(location);
-        }
-
-        @Override
-        public void onProviderDisabled(String provider)
-        {
-            Log.e(TAG, "onProviderDisabled: " + provider);
-        }
-
-        @Override
-        public void onProviderEnabled(String provider)
-        {
-            Log.e(TAG, "onProviderEnabled: " + provider);
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras)
-        {
-            Log.e(TAG, "onStatusChanged: " + provider);
-        }
-    }
-
-    LocationListener[] mLocationListeners = new LocationListener[] {
-            new LocationListener(LocationManager.GPS_PROVIDER),
-            new LocationListener(LocationManager.NETWORK_PROVIDER)
-    };
+    Intent intent;
+    int counter = 0;
 
     @Override
-    public IBinder onBind(Intent arg0)
-    {
-        return null;
+    public void onCreate() {
+        Log.e("LOCATIONSERVICE", "OnCreate");
+        super.onCreate();
+        intent = new Intent(BROADCAST_ACTION);
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
-    {
-        Log.e(TAG, "onStartCommand");
-        super.onStartCommand(intent, flags, startId);
-        return START_STICKY;
-    }
+    public void onStart(Intent intent, int startId) {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        listener = new MyLocationListener();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                      locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 100, 0, listener);
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, listener);
 
-    @Override
-    public void onCreate()
-    {
-        Intent stateUpdate = new Intent("com.quicinc.Trepn.UpdateAppState");
-        stateUpdate.putExtra("com.quicinc.Trepn.UpdateAppState.Value", 7);
-        sendBroadcast(stateUpdate);
-
-
-        Log.e(TAG, "onCreate");
-        initializeLocationManager();
-        try {
-            mLocationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    mLocationListeners[1]);
-        } catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
-        }
-        try {
-            mLocationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    mLocationListeners[0]);
-        } catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "gps provider does not exist " + ex.getMessage());
-        }
-    }
-
-    @Override
-    public void onDestroy()
-    {
-        Log.e(TAG, "onDestroy");
-        super.onDestroy();
-        if (mLocationManager != null) {
-            for (int i = 0; i < mLocationListeners.length; i++) {
-                if(ContextCompat.checkSelfPermission( this.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED &&
-                        ContextCompat.checkSelfPermission( this.getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-                {
-                    try {
-                        mLocationManager.removeUpdates(mLocationListeners[i]);
-                    } catch (Exception ex) {
-                        Log.i(TAG, "fail to remove location listners, ignore", ex);
-                    }
+                Log.e("LOCATIONSERVICE", "permission fine");
                 }
+                else
+                {
+                    Log.e("LOCATIONSERVICE", "error on getting the permission");
+                }
+        }
+        else
+        {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 100, 0, listener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, listener);
+            Log.e("LOCATIONSERVICE", "permission fine2");
+        }
+    }
+
+        @Override
+        public IBinder onBind(Intent intent)
+        {
+            return null;
+        }
+
+        protected boolean isBetterLocation(Location location, Location currentBestLocation) {
+            if (currentBestLocation == null) {
+                // A new location is always better than no location
+                return true;
+            }
+
+            // Check whether the new location fix is newer or older
+            long timeDelta = location.getTime() - currentBestLocation.getTime();
+            boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
+            boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
+            boolean isNewer = timeDelta > 0;
+
+            // If it's been more than two minutes since the current location, use the new location
+            // because the user has likely moved
+            if (isSignificantlyNewer) {
+                return true;
+                // If the new location is more than two minutes older, it must be worse
+            } else if (isSignificantlyOlder) {
+                return false;
+            }
+
+            // Check whether the new location fix is more or less accurate
+            int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
+            boolean isLessAccurate = accuracyDelta > 0;
+            boolean isMoreAccurate = accuracyDelta < 0;
+            boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+
+            // Check if the old and new location are from the same provider
+            boolean isFromSameProvider = isSameProvider(location.getProvider(),
+                    currentBestLocation.getProvider());
+
+            // Determine location quality using a combination of timeliness and accuracy
+            if (isMoreAccurate) {
+                return true;
+            } else if (isNewer && !isLessAccurate) {
+                return true;
+            } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+                return true;
+            }
+            return false;
+        }
+
+
+
+        /** Checks whether two providers are the same */
+        private boolean isSameProvider(String provider1, String provider2) {
+            if (provider1 == null) {
+                return provider2 == null;
+            }
+            return provider1.equals(provider2);
+        }
+
+
+
+        @Override
+        public void onDestroy() {
+            // handler.removeCallbacks(sendUpdatesToUI);
+            super.onDestroy();
+            Log.v("STOP_SERVICE", "DONE");
+            if(ContextCompat.checkSelfPermission( this.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED &&
+                                        ContextCompat.checkSelfPermission( this.getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                locationManager.removeUpdates(listener);
             }
         }
-    }
 
-    private void initializeLocationManager() {
-        Log.e(TAG, "initializeLocationManager");
-        if (mLocationManager == null) {
-            mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        public static Thread performOnBackgroundThread(final Runnable runnable) {
+            final Thread t = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        runnable.run();
+                    } finally {
+
+                    }
+                }
+            };
+            t.start();
+            return t;
+        }
+
+
+
+
+        private class MyLocationListener implements LocationListener
+        {
+
+            public void onLocationChanged(final Location loc)
+            {
+                Toast.makeText(getApplicationContext(), "Gps Update", Toast.LENGTH_SHORT).show();
+                Log.i("****************", "Location changed");
+                if(isBetterLocation(loc, previousBestLocation)) {
+                    loc.getLatitude();
+                    loc.getLongitude();
+                    intent.putExtra("Latitude", loc.getLatitude());
+                    intent.putExtra("Longitude", loc.getLongitude());
+                    intent.putExtra("Provider", loc.getProvider());
+                    sendBroadcast(intent);
+
+                }
+            }
+
+            public void onProviderDisabled(String provider)
+            {
+                Toast.makeText(getApplicationContext(), "Gps Disabled", Toast.LENGTH_SHORT).show();
+            }
+
+
+            public void onProviderEnabled(String provider)
+            {
+                Toast.makeText( getApplicationContext(), "Gps Enabled", Toast.LENGTH_SHORT).show();
+            }
+
+
+            public void onStatusChanged(String provider, int status, Bundle extras)
+            {
+
+            }
+
         }
     }
-}

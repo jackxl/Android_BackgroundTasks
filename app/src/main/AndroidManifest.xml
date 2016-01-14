@@ -25,11 +25,6 @@
         <service android:name=".MyLocationService" />
 
         <activity
-            android:name=".locationServiceActivity"
-            android:label="@string/title_activity_location_service"
-            android:theme="@style/AppTheme.NoActionBar" >
-        </activity>
-        <activity
             android:name=".LocationServiceActivity"
             android:label="@string/title_activity_location_service"
             android:theme="@style/AppTheme.NoActionBar" >
