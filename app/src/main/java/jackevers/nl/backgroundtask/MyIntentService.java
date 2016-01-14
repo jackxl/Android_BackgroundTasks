@@ -24,11 +24,10 @@ public class MyIntentService extends IntentService implements SensorEventListene
 
     protected void onHandleIntent(Intent intent) {
 
-        while (true) {
+        for (int i = 0; i < 1; i++) {
 
-            Intent stateUpdate = new Intent("com.quicinc.Trepn.UpdateAppState");
-            stateUpdate.putExtra("com.quicinc.Trepn.UpdateAppState.Value", 0);
-            sendBroadcast(stateUpdate);
+
+            Helper.setAppState(0, getApplicationContext());
 
             try {
                 Thread.sleep(10000);
@@ -37,10 +36,7 @@ public class MyIntentService extends IntentService implements SensorEventListene
             }
 
             // starting of state 1. factorial calculation
-
-            stateUpdate = new Intent("com.quicinc.Trepn.UpdateAppState");
-            stateUpdate.putExtra("com.quicinc.Trepn.UpdateAppState.Value", 1);
-            sendBroadcast(stateUpdate);
+            Helper.setAppState(1, getApplicationContext());
 
             int n, c;
             BigInteger inc = new BigInteger("1");
@@ -62,10 +58,7 @@ public class MyIntentService extends IntentService implements SensorEventListene
 
             //start of sensors
 
-
-            stateUpdate = new Intent("com.quicinc.Trepn.UpdateAppState");
-            stateUpdate.putExtra("com.quicinc.Trepn.UpdateAppState.Value", 4);
-            sendBroadcast(stateUpdate);
+            Helper.setAppState(4, getApplicationContext());
 
             mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -81,6 +74,10 @@ public class MyIntentService extends IntentService implements SensorEventListene
             mSensorManager.unregisterListener(this);
 
         }
+
+        Intent it = new Intent(this, LocationServiceActivity.class);
+        it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(it);
     }
 
     private long lastUpdate = 0;

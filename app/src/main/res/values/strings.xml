@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BackgroundTask</string>
+    <string name="title_activity_location_service">locationServiceActivity</string>
 </resources>

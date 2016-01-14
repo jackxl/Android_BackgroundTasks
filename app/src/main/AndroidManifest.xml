@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="jackevers.nl.backgroundtask" >
 
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -18,8 +21,19 @@
 
         <service
             android:name=".MyIntentService"
-            android:exported="false"/>
+            android:exported="false" />
+        <service android:name=".MyLocationService" />
 
+        <activity
+            android:name=".locationServiceActivity"
+            android:label="@string/title_activity_location_service"
+            android:theme="@style/AppTheme.NoActionBar" >
+        </activity>
+        <activity
+            android:name=".LocationServiceActivity"
+            android:label="@string/title_activity_location_service"
+            android:theme="@style/AppTheme.NoActionBar" >
+        </activity>
     </application>
 
 </manifest>
