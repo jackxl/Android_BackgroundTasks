@@ -55,6 +55,13 @@ public class MyIntentService extends IntentService implements SensorEventListene
 
             //end of calculations
 
+            Helper.setAppState(0, getApplicationContext());
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             //start of sensors
 
