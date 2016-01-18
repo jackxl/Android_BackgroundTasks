@@ -26,6 +26,10 @@ public class MyLocationService extends Service {
     public MyLocationListener listener;
     public Location previousBestLocation = null;
 
+    /*
+    // Code in this class from: http://stackoverflow.com/questions/14478179/background-service-with-location-listener-in-android
+     */
+
     Intent intent;
     int counter = 0;
 

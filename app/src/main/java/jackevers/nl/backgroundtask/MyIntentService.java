@@ -38,6 +38,7 @@ public class MyIntentService extends IntentService implements SensorEventListene
             // starting of state 1. factorial calculation
             Helper.setAppState(1, getApplicationContext());
 
+            // algoritm to calculate factorial from: http://www.programmingsimplified.com/java/source-code/java-program-find-factorial
             int n, c;
             BigInteger inc = new BigInteger("1");
             BigInteger fact = new BigInteger("1");

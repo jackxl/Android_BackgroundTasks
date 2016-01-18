@@ -50,6 +50,9 @@ public class MyDownloadService extends IntentService {
         }
     }
 
+
+    //method: http://stackoverflow.com/questions/15758856/android-how-to-download-file-from-webserver
+    // stream to byte array from: http://stackoverflow.com/questions/1264709/convert-inputstream-to-byte-array-in-java
     void downloadFile(String _url) {
         try {
             URL u = new URL(_url);
