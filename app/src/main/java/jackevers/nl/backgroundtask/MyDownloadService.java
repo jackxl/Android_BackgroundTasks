@@ -6,6 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -14,40 +19,61 @@ import java.net.URL;
  */
 public class MyDownloadService extends IntentService {
 
-    private String file_url = "http://tostring.nl/picture.jpg";
 
-    /**
-     * Creates an IntentService.  Invoked by your subclass's constructor.
-     *
-     * @param name Used to name the worker thread, important only for debugging.
-     */
-    public MyDownloadService(String name) {
-        super(name);
+    public MyDownloadService() {
+        super("MyDownloadService");
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        for(int i = 0; i < 10; i++)
+        for(int i = 1; i <= 7; i++)
         {
             Helper.setAppState(0, getApplicationContext());
 
+
             try {
-                Thread.sleep(10000);
+                Thread.sleep(20000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
             Helper.setAppState(9, getApplicationContext());
 
-            DownloadManager dlm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
-            Uri uri = Uri.parse(file_url);
+            String file_url = "http://tostring.nl/picture" + i + ".jpg";
 
-            dlm.enqueue(new DownloadManager.Request(uri));
+            downloadFile(file_url);
 
 
             Helper.setAppState(0, getApplicationContext());
+        }
+    }
+
+    void downloadFile(String _url) {
+        try {
+            URL u = new URL(_url);
+            DataInputStream stream = new DataInputStream(u.openStream());
+
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+            int nRead;
+            byte[] data = new byte[16384];
+
+            while ((nRead = stream.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+
+            buffer.flush();
+
+            byte[] byteArray = buffer.toByteArray();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
         }
     }
 }
